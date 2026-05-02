@@ -81,6 +81,15 @@ class MockDataLoader(IDataLoader):
                 reward=30,
                 description="生命值极高的敌人，移动缓慢但破坏力巨大。"
             ),
+            "enemy_shadow": EnemyConfigDTO(
+                id="enemy_shadow",
+                name="暗影行者",
+                max_hp=150,
+                speed=2.0,
+                damage=15,
+                reward=20,
+                description="神秘的暗影生物，拥有中等的生命值和移动速度。它们来自深渊的最暗处。"
+            ),
         }
 
     def _create_mock_towers(self) -> Dict[str, TowerConfigDTO]:
@@ -115,6 +124,16 @@ class MockDataLoader(IDataLoader):
                 attack_speed=1.2,
                 description="攻击会减速敌人的特殊防御塔，控制效果极佳。",
                 upgrade_ids=["tower_ice_002"]
+            ),
+            "tower_base": TowerConfigDTO(
+                id="tower_base",
+                name="基础炮塔",
+                cost=50,
+                damage=10,
+                attack_range=2.0,
+                attack_speed=0.8,
+                description="最基础的防御塔，造价低廉，适合作为初期防御使用。",
+                upgrade_ids=["tower_arrow_001"]
             ),
         }
 

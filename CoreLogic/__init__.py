@@ -41,6 +41,9 @@ from CoreLogic.Interfaces import (
     IDataLoader,
     IGameLogger,
     ITickable,
+    IComponent,
+    IEntity,
+    IUpdateable,
 )
 from CoreLogic.DTOs import (
     BaseConfigDTO,
@@ -56,6 +59,11 @@ from CoreLogic.Managers import (
     GameLogger,
     LogLevel,
     GameLoopManager,
+    EntityManager,
+)
+from CoreLogic.SpaceMapping import (
+    GridCell,
+    GridMap,
 )
 
 __all__ = [
@@ -72,6 +80,9 @@ __all__ = [
     'IDataLoader',
     'IGameLogger',
     'ITickable',
+    'IComponent',
+    'IEntity',
+    'IUpdateable',
     'BaseConfigDTO',
     'EnemyConfigDTO',
     'TowerConfigDTO',
@@ -81,4 +92,7 @@ __all__ = [
     'GameLogger',
     'LogLevel',
     'GameLoopManager',
+    'EntityManager',
+    'GridCell',
+    'GridMap',
 ]

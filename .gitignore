@@ -42,3 +42,6 @@ htmlcov/
 .env
 .env.local
 .env.*.local
+
+# IDE - Claude
+.claude/

@@ -22,10 +22,16 @@ from CoreLogic.Interfaces.IEvent import IEvent
 from CoreLogic.Interfaces.IDataLoader import IDataLoader
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
 from CoreLogic.Interfaces.ITickable import ITickable
+from CoreLogic.Interfaces.IComponent import IComponent
+from CoreLogic.Interfaces.IEntity import IEntity
+from CoreLogic.Interfaces.IUpdateable import IUpdateable
 
 __all__ = [
     'IEvent',
     'IDataLoader',
     'IGameLogger',
     'ITickable',
+    'IComponent',
+    'IEntity',
+    'IUpdateable',
 ]
