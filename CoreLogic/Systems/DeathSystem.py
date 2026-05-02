@@ -36,13 +36,10 @@ DeathSystem 负责处理实体的死亡流程，通过 EventBus 订阅 EntityDea
 
 from typing import Optional
 
-from CoreLogic import (
-    subscribe,
-    unsubscribe,
-    EntityDeathEvent,
-    EntityManager,
-    try_get_service,
-)
+from CoreLogic.Events.EntityDeathEvent import EntityDeathEvent
+from CoreLogic.Managers.EntityManager import EntityManager
+from CoreLogic.Core.ServiceLocator import try_get_service
+from CoreLogic.Core.EventBus import subscribe, unsubscribe
 
 
 class DeathSystem:

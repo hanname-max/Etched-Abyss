@@ -25,6 +25,7 @@ from CoreLogic.Interfaces.ITickable import ITickable
 from CoreLogic.Interfaces.IComponent import IComponent
 from CoreLogic.Interfaces.IEntity import IEntity
 from CoreLogic.Interfaces.IUpdateable import IUpdateable
+from CoreLogic.Interfaces.IAttackStrategy import IAttackStrategy
 
 __all__ = [
     'IEvent',
@@ -34,4 +35,5 @@ __all__ = [
     'IComponent',
     'IEntity',
     'IUpdateable',
+    'IAttackStrategy',
 ]

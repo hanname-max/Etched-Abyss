@@ -46,6 +46,8 @@ from CoreLogic.Events.ProjectileHitEvent import ProjectileHitEvent
 from CoreLogic.Managers.EntityManager import EntityManager
 from CoreLogic.Systems.HealthSystem import HealthSystem
 from CoreLogic.Components.HealthComponent import HealthComponent
+from CoreLogic.Components.BuffComponent import BuffComponent
+from CoreLogic.StatusEffects.StatusEffect import StatusEffect
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
 
 
@@ -209,3 +211,52 @@ class DamageResolutionSystem:
         )
         
         self._health_system.take_damage(target_entity, event.damage)
+        
+        self._apply_status_effects(target_entity, event.status_effects)
+    
+    def _apply_status_effects(self, target_entity, status_effects: list[StatusEffect]) -> None:
+        """
+        应用状态效果到目标实体。
+        
+        如果目标实体没有 BuffComponent，则添加一个。
+        然后将所有状态效果添加到 BuffComponent 中并应用。
+        
+        参数：
+            target_entity: 目标实体
+            status_effects: 要应用的状态效果列表
+        """
+        if not status_effects:
+            return
+        
+        buff_comp = target_entity.get_component(BuffComponent)
+        if buff_comp is None:
+            buff_comp = BuffComponent()
+            target_entity.add_component(buff_comp)
+        
+        for effect in status_effects:
+            effect_copy = self._copy_effect(effect)
+            buff_comp.add_effect(effect_copy)
+            effect_copy.apply(target_entity)
+            
+            self._log_combat(
+                "状态效果已应用",
+                entity_id=target_entity.entity_id,
+                effect_type=type(effect_copy).__name__,
+                duration=effect_copy.duration,
+            )
+    
+    def _copy_effect(self, effect: StatusEffect) -> StatusEffect:
+        """
+        创建状态效果的副本。
+        
+        由于状态效果包含时间状态，每个目标应该获得独立的副本。
+        
+        参数：
+            effect: 原始状态效果
+            
+        返回：
+            状态效果的新实例
+        """
+        return type(effect)(
+            **{k: v for k, v in effect.__dict__.items() if not k.startswith('_')}
+        )

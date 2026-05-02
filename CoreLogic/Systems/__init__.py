@@ -28,10 +28,14 @@ from CoreLogic.Systems.HealthSystem import HealthSystem
 from CoreLogic.Systems.DeathSystem import DeathSystem
 from CoreLogic.Systems.ProjectileSystem import ProjectileSystem
 from CoreLogic.Systems.DamageResolutionSystem import DamageResolutionSystem
+from CoreLogic.Systems.BuffSystem import BuffSystem
+from CoreLogic.Systems.AttackSystem import AttackSystem
 
 __all__ = [
     'HealthSystem',
     'DeathSystem',
     'ProjectileSystem',
     'DamageResolutionSystem',
+    'BuffSystem',
+    'AttackSystem',
 ]

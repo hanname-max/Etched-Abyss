@@ -20,13 +20,10 @@ HealthComponent 只是纯粹的数据容器，不包含任何业务逻辑。
 from typing import Optional, Callable
 from dataclasses import dataclass
 
-from CoreLogic import (
-    IEntity,
-    get_service,
-    try_get_service,
-    IGameLogger,
-    publish,
-)
+from CoreLogic.Interfaces.IEntity import IEntity
+from CoreLogic.Interfaces.IGameLogger import IGameLogger
+from CoreLogic.Core.ServiceLocator import try_get_service
+from CoreLogic.Core.EventBus import publish
 from CoreLogic.Components.HealthComponent import HealthComponent
 from CoreLogic.Events.EntityDeathEvent import EntityDeathEvent
 

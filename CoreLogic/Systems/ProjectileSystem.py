@@ -32,18 +32,15 @@ ProjectileSystem 负责管理投射物的生命周期：
 
 from typing import Optional
 
-from CoreLogic import (
-    subscribe,
-    unsubscribe,
-    TowerFiredEvent,
-    ProjectileHitEvent,
-    EntityManager,
-    TransformComponent,
-    ProjectileComponent,
-    HomingMovementComponent,
-    ITickable,
-    try_get_service,
-)
+from CoreLogic.Events.TowerFiredEvent import TowerFiredEvent
+from CoreLogic.Events.ProjectileHitEvent import ProjectileHitEvent
+from CoreLogic.Managers.EntityManager import EntityManager
+from CoreLogic.Components.TransformComponent import TransformComponent
+from CoreLogic.Components.ProjectileComponent import ProjectileComponent
+from CoreLogic.Components.HomingMovementComponent import HomingMovementComponent
+from CoreLogic.Interfaces.ITickable import ITickable
+from CoreLogic.Core.ServiceLocator import try_get_service
+from CoreLogic.Core.EventBus import subscribe, unsubscribe
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
 
 
@@ -191,7 +188,8 @@ class ProjectileSystem(ITickable):
             damage=event.damage,
             target_id=event.target_id,
             source_tower_id=event.tower_id,
-            hit_threshold=self.HIT_THRESHOLD
+            hit_threshold=self.HIT_THRESHOLD,
+            status_effects=event.status_effects
         )
         projectile_entity.add_component(projectile_component)
         

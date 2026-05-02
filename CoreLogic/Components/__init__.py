@@ -25,6 +25,9 @@ from CoreLogic.Components.TowerComponent import TowerComponent
 from CoreLogic.Components.TargetingComponent import TargetingComponent
 from CoreLogic.Components.ProjectileComponent import ProjectileComponent
 from CoreLogic.Components.HomingMovementComponent import HomingMovementComponent
+from CoreLogic.Components.OrganSlotComponent import OrganSlotComponent
+from CoreLogic.Components.BuffComponent import BuffComponent
+from CoreLogic.Components.AttackComponent import AttackComponent
 
 __all__ = [
     'TransformComponent',
@@ -34,4 +37,7 @@ __all__ = [
     'TargetingComponent',
     'ProjectileComponent',
     'HomingMovementComponent',
+    'OrganSlotComponent',
+    'BuffComponent',
+    'AttackComponent',
 ]

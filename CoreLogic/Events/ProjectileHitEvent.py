@@ -15,11 +15,14 @@ ProjectileHitEvent 用于在投射物击中目标时通知其他系统。
 - UI系统：显示击中特效
 - 音效系统：播放击中音效
 - 成就系统：检查成就条件
+- 状态效果系统：应用投射物携带的状态效果
 ============================================================================
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
+
+from CoreLogic.StatusEffects.StatusEffect import StatusEffect
 
 
 @dataclass
@@ -37,6 +40,7 @@ class ProjectileHitEvent:
         hit_x: 击中位置 X 坐标
         hit_y: 击中位置 Y 坐标
         source_tower_id: 发射此投射物的防御塔实体 ID（可选）
+        status_effects: 投射物携带的状态效果列表（如中毒、减速等）
     
     使用示例：
         # 订阅击中事件
@@ -44,18 +48,21 @@ class ProjectileHitEvent:
         
         def on_projectile_hit(event: ProjectileHitEvent) -> None:
             print(f"投射物 {event.projectile_id} 击中了目标 {event.target_id}，造成 {event.damage} 点伤害")
+            for effect in event.status_effects:
+                print(f"附带状态效果: {type(effect).__name__}")
         
         subscribe(ProjectileHitEvent, on_projectile_hit)
         
         # 发布击中事件（通常由投射物系统发布）
-        from CoreLogic import publish
+        from CoreLogic import publish, PoisonEffect
         publish(ProjectileHitEvent(
             projectile_id=10,
             target_id=5,
             damage=25.0,
             hit_x=6.0,
             hit_y=3.0,
-            source_tower_id=1
+            source_tower_id=1,
+            status_effects=[PoisonEffect(duration=5.0, damage_percent=0.05)]
         ))
     """
     
@@ -65,3 +72,4 @@ class ProjectileHitEvent:
     hit_x: float
     hit_y: float
     source_tower_id: Optional[int] = None
+    status_effects: List[StatusEffect] = field(default_factory=list)

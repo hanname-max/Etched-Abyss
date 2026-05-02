@@ -254,13 +254,20 @@ class HomingMovementComponent(IUpdateable):
             else None
         )
         
+        status_effects = (
+            self.projectile_component.status_effects
+            if self.projectile_component is not None
+            else []
+        )
+        
         hit_event = ProjectileHitEvent(
             projectile_id=self.projectile_id,
             target_id=self.target_id,
             damage=self.projectile_component.damage if self.projectile_component else 0.0,
             hit_x=hit_x,
             hit_y=hit_y,
-            source_tower_id=source_tower_id
+            source_tower_id=source_tower_id,
+            status_effects=status_effects
         )
         
         publish(hit_event)

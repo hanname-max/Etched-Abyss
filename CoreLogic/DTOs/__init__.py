@@ -21,6 +21,7 @@ from CoreLogic.DTOs.BaseConfigDTO import BaseConfigDTO
 from CoreLogic.DTOs.EnemyConfigDTO import EnemyConfigDTO
 from CoreLogic.DTOs.TowerConfigDTO import TowerConfigDTO
 from CoreLogic.DTOs.WaveConfigDTO import WaveConfigDTO, EnemySpawnConfig
+from CoreLogic.DTOs.OrganConfigDTO import OrganConfigDTO
 
 __all__ = [
     'BaseConfigDTO',
@@ -28,4 +29,5 @@ __all__ = [
     'TowerConfigDTO',
     'WaveConfigDTO',
     'EnemySpawnConfig',
+    'OrganConfigDTO',
 ]

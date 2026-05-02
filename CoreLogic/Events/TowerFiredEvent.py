@@ -14,10 +14,14 @@ TowerFiredEvent 用于在防御塔发射攻击时通知其他系统。
 - 投射物系统：创建投射物实体
 - UI系统：显示发射特效
 - 音效系统：播放发射音效
+- 状态效果系统：传递投射物携带的状态效果
 ============================================================================
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
+
+from CoreLogic.StatusEffects.StatusEffect import StatusEffect
 
 
 @dataclass
@@ -35,6 +39,7 @@ class TowerFiredEvent:
         start_x: 发射起始位置 X 坐标
         start_y: 发射起始位置 Y 坐标
         speed: 投射物飞行速度（单位/秒）
+        status_effects: 投射物携带的状态效果列表（如中毒、减速等）
     
     使用示例：
         # 订阅发射事件
@@ -42,18 +47,21 @@ class TowerFiredEvent:
         
         def on_tower_fired(event: TowerFiredEvent) -> None:
             print(f"塔 {event.tower_id} 发射了攻击，目标: {event.target_id}")
+            for effect in event.status_effects:
+                print(f"附带状态效果: {type(effect).__name__}")
         
         subscribe(TowerFiredEvent, on_tower_fired)
         
         # 发布发射事件（通常由战斗系统发布）
-        from CoreLogic import publish
+        from CoreLogic import publish, PoisonEffect
         publish(TowerFiredEvent(
             tower_id=1,
             target_id=5,
             damage=25,
             start_x=5.0,
             start_y=3.0,
-            speed=8.0
+            speed=8.0,
+            status_effects=[PoisonEffect(duration=5.0, damage_percent=0.05)]
         ))
     """
     
@@ -63,3 +71,4 @@ class TowerFiredEvent:
     start_x: float
     start_y: float
     speed: float
+    status_effects: List[StatusEffect] = field(default_factory=list)
