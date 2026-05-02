@@ -26,8 +26,12 @@ Component 是纯粹的数据容器，不包含任何业务逻辑。
 
 from CoreLogic.Systems.HealthSystem import HealthSystem
 from CoreLogic.Systems.DeathSystem import DeathSystem
+from CoreLogic.Systems.ProjectileSystem import ProjectileSystem
+from CoreLogic.Systems.DamageResolutionSystem import DamageResolutionSystem
 
 __all__ = [
     'HealthSystem',
     'DeathSystem',
+    'ProjectileSystem',
+    'DamageResolutionSystem',
 ]

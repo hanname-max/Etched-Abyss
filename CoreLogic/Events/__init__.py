@@ -24,7 +24,11 @@
 """
 
 from CoreLogic.Events.EntityDeathEvent import EntityDeathEvent
+from CoreLogic.Events.TowerFiredEvent import TowerFiredEvent
+from CoreLogic.Events.ProjectileHitEvent import ProjectileHitEvent
 
 __all__ = [
     'EntityDeathEvent',
+    'TowerFiredEvent',
+    'ProjectileHitEvent',
 ]

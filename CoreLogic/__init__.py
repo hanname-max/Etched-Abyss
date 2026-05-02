@@ -62,6 +62,7 @@ from CoreLogic.Managers import (
     EntityManager,
     WaveManager,
     SpawnTask,
+    BuildManager,
 )
 from CoreLogic.SpaceMapping import (
     GridCell,
@@ -73,13 +74,21 @@ from CoreLogic.Components import (
     TransformComponent,
     HealthComponent,
     MovementComponent,
+    TowerComponent,
+    TargetingComponent,
+    ProjectileComponent,
+    HomingMovementComponent,
 )
 from CoreLogic.Events import (
     EntityDeathEvent,
+    TowerFiredEvent,
+    ProjectileHitEvent,
 )
 from CoreLogic.Systems import (
     HealthSystem,
     DeathSystem,
+    ProjectileSystem,
+    DamageResolutionSystem,
 )
 from CoreLogic.Systems.HealthSystem import (
     DeathContext,
@@ -115,6 +124,7 @@ __all__ = [
     'EntityManager',
     'WaveManager',
     'SpawnTask',
+    'BuildManager',
     'GridCell',
     'GridMap',
     'Pathfinder',
@@ -122,9 +132,17 @@ __all__ = [
     'TransformComponent',
     'HealthComponent',
     'MovementComponent',
+    'TowerComponent',
+    'TargetingComponent',
+    'ProjectileComponent',
+    'HomingMovementComponent',
     'EntityDeathEvent',
+    'TowerFiredEvent',
+    'ProjectileHitEvent',
     'HealthSystem',
     'DeathSystem',
+    'ProjectileSystem',
+    'DamageResolutionSystem',
     'DeathContext',
     'OnDeathCallback',
 ]

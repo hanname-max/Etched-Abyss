@@ -21,9 +21,17 @@ MovementComponent 实现了 IUpdateable 接口，用于自驱动的路径移动�
 from CoreLogic.Components.TransformComponent import TransformComponent
 from CoreLogic.Components.HealthComponent import HealthComponent
 from CoreLogic.Components.MovementComponent import MovementComponent
+from CoreLogic.Components.TowerComponent import TowerComponent
+from CoreLogic.Components.TargetingComponent import TargetingComponent
+from CoreLogic.Components.ProjectileComponent import ProjectileComponent
+from CoreLogic.Components.HomingMovementComponent import HomingMovementComponent
 
 __all__ = [
     'TransformComponent',
     'HealthComponent',
     'MovementComponent',
+    'TowerComponent',
+    'TargetingComponent',
+    'ProjectileComponent',
+    'HomingMovementComponent',
 ]
