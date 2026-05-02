@@ -60,10 +60,30 @@ from CoreLogic.Managers import (
     LogLevel,
     GameLoopManager,
     EntityManager,
+    WaveManager,
+    SpawnTask,
 )
 from CoreLogic.SpaceMapping import (
     GridCell,
     GridMap,
+    Pathfinder,
+    PathNode,
+)
+from CoreLogic.Components import (
+    TransformComponent,
+    HealthComponent,
+    MovementComponent,
+)
+from CoreLogic.Events import (
+    EntityDeathEvent,
+)
+from CoreLogic.Systems import (
+    HealthSystem,
+    DeathSystem,
+)
+from CoreLogic.Systems.HealthSystem import (
+    DeathContext,
+    OnDeathCallback,
 )
 
 __all__ = [
@@ -93,6 +113,18 @@ __all__ = [
     'LogLevel',
     'GameLoopManager',
     'EntityManager',
+    'WaveManager',
+    'SpawnTask',
     'GridCell',
     'GridMap',
+    'Pathfinder',
+    'PathNode',
+    'TransformComponent',
+    'HealthComponent',
+    'MovementComponent',
+    'EntityDeathEvent',
+    'HealthSystem',
+    'DeathSystem',
+    'DeathContext',
+    'OnDeathCallback',
 ]

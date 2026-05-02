@@ -6,5 +6,6 @@
 
 from CoreLogic.SpaceMapping.GridCell import GridCell
 from CoreLogic.SpaceMapping.GridMap import GridMap
+from CoreLogic.SpaceMapping.Pathfinder import Pathfinder, PathNode
 
-__all__ = ['GridCell', 'GridMap']
+__all__ = ['GridCell', 'GridMap', 'Pathfinder', 'PathNode']
