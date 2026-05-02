@@ -5,7 +5,6 @@ T = TypeVar('T')
 
 class ServiceLocator:
     _instance: Optional['ServiceLocator'] = None
-    _services: Dict[Type[Any], Any] = {}
 
     def __new__(cls) -> 'ServiceLocator':
         if cls._instance is None:
@@ -15,8 +14,9 @@ class ServiceLocator:
 
     @classmethod
     def reset(cls) -> None:
+        if cls._instance is not None:
+            cls._instance._services.clear()
         cls._instance = None
-        cls._services = {}
 
     def register_service(self, service_type: Type[T], instance: T) -> None:
         if service_type in self._services:

@@ -1,7 +1,7 @@
 """
-接口定义模块
+领域事件接口定义
 
-包含所有核心接口定义，用于模块间解耦。
+IEvent 是所有领域事件的基类空接口。
 
 ============================================================================
 【架构规范强制声明】
@@ -18,14 +18,22 @@
 ============================================================================
 """
 
-from CoreLogic.Interfaces.IEvent import IEvent
-from CoreLogic.Interfaces.IDataLoader import IDataLoader
-from CoreLogic.Interfaces.IGameLogger import IGameLogger
-from CoreLogic.Interfaces.ITickable import ITickable
+from typing import Protocol
 
-__all__ = [
-    'IEvent',
-    'IDataLoader',
-    'IGameLogger',
-    'ITickable',
-]
+
+class IEvent(Protocol):
+    """
+    领域事件基接口。
+    
+    所有领域事件都应该实现（或被视为实现）此协议接口。
+    这是一个空的标记接口，用于类型安全的事件总线操作。
+    
+    使用示例：
+        @dataclass
+        class EnemyKilledEvent:
+            enemy_id: str
+            reward: int
+        
+        该类自动满足 IEvent 协议，无需显式继承。
+    """
+    pass
