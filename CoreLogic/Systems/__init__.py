@@ -30,6 +30,8 @@ from CoreLogic.Systems.ProjectileSystem import ProjectileSystem
 from CoreLogic.Systems.DamageResolutionSystem import DamageResolutionSystem
 from CoreLogic.Systems.BuffSystem import BuffSystem
 from CoreLogic.Systems.AttackSystem import AttackSystem
+from CoreLogic.Systems.DynamicRepathingSystem import DynamicRepathingSystem
+from CoreLogic.Systems.SiegeSystem import SiegeSystem
 
 __all__ = [
     'HealthSystem',
@@ -38,4 +40,6 @@ __all__ = [
     'DamageResolutionSystem',
     'BuffSystem',
     'AttackSystem',
+    'DynamicRepathingSystem',
+    'SiegeSystem',
 ]

@@ -28,6 +28,8 @@ from CoreLogic.Components.HomingMovementComponent import HomingMovementComponent
 from CoreLogic.Components.OrganSlotComponent import OrganSlotComponent
 from CoreLogic.Components.BuffComponent import BuffComponent
 from CoreLogic.Components.AttackComponent import AttackComponent
+from CoreLogic.Components.LightSourceComponent import LightSourceComponent
+from CoreLogic.Components.SiegeComponent import SiegeComponent
 
 __all__ = [
     'TransformComponent',
@@ -40,4 +42,6 @@ __all__ = [
     'OrganSlotComponent',
     'BuffComponent',
     'AttackComponent',
+    'LightSourceComponent',
+    'SiegeComponent',
 ]

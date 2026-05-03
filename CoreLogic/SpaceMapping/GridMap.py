@@ -73,12 +73,12 @@ class GridMap:
         初始化所有网格单元。
         
         在构造函数中调用，创建所有 GridCell 实例并存储在字典中。
-        所有单元默认都是可通行的（is_walkable=True）。
+        所有单元默认都是可通行的（is_walkable=True），默认被黑雾笼罩（is_visible=False）。
         """
         with self._lock:
             for y in range(self._height):
                 for x in range(self._width):
-                    self._cells[(x, y)] = GridCell(x=x, y=y, is_walkable=True)
+                    self._cells[(x, y)] = GridCell(x=x, y=y, is_walkable=True, is_visible=False)
 
     @property
     def width(self) -> int:
@@ -128,6 +128,7 @@ class GridMap:
     def set_walkable(self, x: int, y: int, is_walkable: bool) -> bool:
         """
         设置指定坐标单元的可通行性。
+        保持现有的可见性状态不变。
         
         参数：
             x: 要设置的单元的 X 坐标
@@ -145,7 +146,46 @@ class GridMap:
         with self._lock:
             cell = self._cells.get((x, y))
             if cell is not None:
-                self._cells[(x, y)] = GridCell(x=x, y=y, is_walkable=is_walkable)
+                self._cells[(x, y)] = GridCell(
+                    x=x, 
+                    y=y, 
+                    is_walkable=is_walkable, 
+                    is_visible=cell.is_visible
+                )
+                return True
+            return False
+
+    def set_visible(self, x: int, y: int, is_visible: bool) -> bool:
+        """
+        设置指定坐标单元的可见性。
+        保持现有的可通行性状态不变。
+        
+        这是黑雾机制的核心方法：
+        - is_visible=True 表示该区域已被探索，黑雾消散
+        - is_visible=False 表示该区域被黑雾笼罩
+        
+        参数：
+            x: 要设置的单元的 X 坐标
+            y: 要设置的单元的 Y 坐标
+            is_visible: 新的可见性状态
+            
+        返回：
+            True 如果设置成功；False 如果坐标越界
+            
+        线程安全：此方法是线程安全的
+        """
+        if not self.is_valid_position(x, y):
+            return False
+        
+        with self._lock:
+            cell = self._cells.get((x, y))
+            if cell is not None:
+                self._cells[(x, y)] = GridCell(
+                    x=x, 
+                    y=y, 
+                    is_walkable=cell.is_walkable, 
+                    is_visible=is_visible
+                )
                 return True
             return False
 
@@ -164,6 +204,22 @@ class GridMap:
         if cell is None:
             return None
         return cell.is_walkable
+
+    def is_visible(self, x: int, y: int) -> Optional[bool]:
+        """
+        检查指定坐标单元是否可见（未被黑雾笼罩）。
+        
+        参数：
+            x: 要检查的单元的 X 坐标
+            y: 要检查的单元的 Y 坐标
+            
+        返回：
+            True 如果可见；False 如果被黑雾笼罩；None 如果坐标越界
+        """
+        cell = self.get_cell(x, y)
+        if cell is None:
+            return None
+        return cell.is_visible
 
     def get_all_cells(self) -> List[GridCell]:
         """
@@ -200,24 +256,70 @@ class GridMap:
         """
         return [cell for cell in self.get_all_cells() if not cell.is_walkable]
 
+    def get_visible_cells(self) -> List[GridCell]:
+        """
+        获取所有可见的网格单元（未被黑雾笼罩）。
+        
+        返回：
+            包含所有 is_visible=True 的 GridCell 实例的列表
+        """
+        return [cell for cell in self.get_all_cells() if cell.is_visible]
+
+    def get_hidden_cells(self) -> List[GridCell]:
+        """
+        获取所有被黑雾笼罩的网格单元。
+        
+        返回：
+            包含所有 is_visible=False 的 GridCell 实例的列表
+        """
+        return [cell for cell in self.get_all_cells() if not cell.is_visible]
+
     def reset(self) -> None:
         """
         重置网格地图。
         
-        将所有单元的可通行性设置为 True（默认状态）。
+        将所有单元的可通行性设置为 True（默认状态），
+        并将所有单元的可见性设置为 False（黑雾笼罩）。
         
         线程安全：此方法是线程安全的
         """
         with self._lock:
             for y in range(self._height):
                 for x in range(self._width):
-                    self._cells[(x, y)] = GridCell(x=x, y=y, is_walkable=True)
+                    self._cells[(x, y)] = GridCell(
+                        x=x, 
+                        y=y, 
+                        is_walkable=True, 
+                        is_visible=False
+                    )
+
+    def reset_visibility(self) -> None:
+        """
+        只重置可见性状态，不影响可通行性。
+        
+        将所有单元的可见性设置为 False（黑雾笼罩）。
+        用于重新迷雾整个地图，而保留地形障碍。
+        
+        线程安全：此方法是线程安全的
+        """
+        with self._lock:
+            for y in range(self._height):
+                for x in range(self._width):
+                    cell = self._cells.get((x, y))
+                    if cell is not None:
+                        self._cells[(x, y)] = GridCell(
+                            x=x, 
+                            y=y, 
+                            is_walkable=cell.is_walkable, 
+                            is_visible=False
+                        )
 
     def resize(self, new_width: int, new_height: int) -> None:
         """
         调整网格地图的大小。
         
-        此操作会重置所有单元，新单元默认都是可通行的。
+        此操作会重置所有单元，新单元默认都是可通行的，
+        且默认被黑雾笼罩（is_visible=False）。
         
         参数：
             new_width: 新的宽度（必须大于 0）
@@ -239,7 +341,12 @@ class GridMap:
             self._cells.clear()
             for y in range(self._height):
                 for x in range(self._width):
-                    self._cells[(x, y)] = GridCell(x=x, y=y, is_walkable=True)
+                    self._cells[(x, y)] = GridCell(
+                        x=x, 
+                        y=y, 
+                        is_walkable=True, 
+                        is_visible=False
+                    )
 
     def __getitem__(self, index: Tuple[int, int]) -> Optional[GridCell]:
         """

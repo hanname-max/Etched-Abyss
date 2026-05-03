@@ -34,6 +34,7 @@ from CoreLogic.Interfaces.IUpdateable import IUpdateable
 from CoreLogic.Components.TransformComponent import TransformComponent
 from CoreLogic.Components.HealthComponent import HealthComponent
 from CoreLogic.Managers.EntityManager import EntityManager
+from CoreLogic.Managers.InsanityManager import InsanityManager
 from CoreLogic.Core.ServiceLocator import try_get_service
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
 
@@ -139,9 +140,38 @@ class TargetingComponent(IUpdateable):
         
         self._perform_search(entity_manager)
     
+    def _get_insanity_manager(self) -> Optional[InsanityManager]:
+        """
+        获取疯狂值管理器服务。
+        
+        返回：
+            InsanityManager 实例，如果未注册则返回 None
+        """
+        return try_get_service(InsanityManager)
+    
+    def _get_effective_search_radius(self) -> float:
+        """
+        获取当前有效的索敌半径。
+        
+        在高疯狂状态下，索敌距离减半（高风险高回报机制）。
+        
+        返回：
+            有效的索敌半径
+        """
+        base_radius = self.search_radius
+        
+        insanity_manager = self._get_insanity_manager()
+        if insanity_manager is not None and insanity_manager.is_high_insanity():
+            multiplier = insanity_manager.high_insanity_search_radius_multiplier
+            return base_radius * multiplier
+        
+        return base_radius
+    
     def _perform_search(self, entity_manager: EntityManager) -> None:
         """
         执行索敌逻辑。
+        
+        在高疯狂状态下，索敌距离会减半（高风险高回报机制）。
         
         参数：
             entity_manager: EntityManager 实例，用于查询实体
@@ -151,7 +181,9 @@ class TargetingComponent(IUpdateable):
         
         my_x = self.transform.x
         my_y = self.transform.y
-        search_radius_squared = self.search_radius * self.search_radius
+        
+        effective_radius = self._get_effective_search_radius()
+        search_radius_squared = effective_radius * effective_radius
         
         candidates: List[Tuple[int, float]] = []
         

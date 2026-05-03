@@ -32,8 +32,10 @@ class OrganConfigDTO(BaseConfigDTO):
         name: 器官的可读名称
         description: 器官的描述文本
         attribute_modifiers: 属性修饰器参数列表，每个参数包含属性名和修饰值
+        insanity_gain: 装备此器官时增加的疯狂值（默认 0），极端器官如"古神视神经"会有较高值
         
     示例：
+        # 普通器官
         organ_config = OrganConfigDTO(
             id="organ_heart_001",
             name="强化之心",
@@ -43,9 +45,21 @@ class OrganConfigDTO(BaseConfigDTO):
                 {"attribute": "attack_speed", "value": 0.1, "type": "percentage"}
             ]
         )
+        
+        # 极端器官（增加疯狂值）
+        ancient_eye = OrganConfigDTO(
+            id="organ_ancient_eye_001",
+            name="古神视神经",
+            description="来自深渊的凝视：攻击范围大幅增加，但会提高疯狂值",
+            attribute_modifiers=[
+                {"attribute": "attack_range", "value": 2.0, "type": "additive"}
+            ],
+            insanity_gain=25.0
+        )
     """
     description: str = ""
     attribute_modifiers: List[Dict[str, Any]] = field(default_factory=list)
+    insanity_gain: float = 0.0
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'OrganConfigDTO':

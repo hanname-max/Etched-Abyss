@@ -38,6 +38,11 @@ from typing import Optional
 
 from CoreLogic.Events.EntityDeathEvent import EntityDeathEvent
 from CoreLogic.Managers.EntityManager import EntityManager
+from CoreLogic.Managers.VisibilityManager import VisibilityManager
+from CoreLogic.SpaceMapping.GridMap import GridMap
+from CoreLogic.Components.LightSourceComponent import LightSourceComponent
+from CoreLogic.Components.TransformComponent import TransformComponent
+from CoreLogic.Components.TowerComponent import TowerComponent
 from CoreLogic.Core.ServiceLocator import try_get_service
 from CoreLogic.Core.EventBus import subscribe, unsubscribe
 
@@ -119,13 +124,33 @@ class DeathSystem:
         """
         return try_get_service(EntityManager)
     
+    def _get_visibility_manager(self) -> Optional[VisibilityManager]:
+        """
+        从 ServiceLocator 获取 VisibilityManager。
+        
+        返回：
+            VisibilityManager 实例，如果未注册则返回 None
+        """
+        return try_get_service(VisibilityManager)
+    
+    def _get_grid_map(self) -> Optional[GridMap]:
+        """
+        从 ServiceLocator 获取 GridMap。
+        
+        返回：
+            GridMap 实例，如果未注册则返回 None
+        """
+        return try_get_service(GridMap)
+    
     def _on_entity_death(self, event: EntityDeathEvent) -> None:
         """
         处理实体死亡事件。
         
         当收到 EntityDeathEvent 时：
         1. 从 ServiceLocator 获取 EntityManager
-        2. 调用 destroy_entity 销毁该实体
+        2. 检查实体是否有 LightSourceComponent，如果有则移除光照
+        3. 如果是防御塔，恢复网格可通行性
+        4. 调用 destroy_entity 销毁该实体
         
         参数：
             event: EntityDeathEvent 实例，包含死亡实体的信息
@@ -134,4 +159,55 @@ class DeathSystem:
         if entity_manager is None:
             return
         
+        entity = entity_manager.get_entity(event.entity_id)
+        if entity is not None:
+            self._handle_light_source_removal(entity)
+            self._handle_tower_destruction(entity)
+        
         entity_manager.destroy_entity(event.entity_id)
+    
+    def _handle_light_source_removal(self, entity) -> None:
+        if not entity.has_component(LightSourceComponent):
+            return
+
+        light_source = entity.get_component(LightSourceComponent)
+        if light_source is None or not light_source.is_active:
+            return
+
+        visibility_manager = self._get_visibility_manager()
+        if visibility_manager is None:
+            return
+
+        visibility_manager.remove_light_source_by_id(entity.entity_id)
+    
+    def _handle_tower_destruction(self, entity) -> None:
+        """
+        处理防御塔被摧毁后的网格恢复。
+        
+        当防御塔被敌人摧毁时：
+        1. 恢复该位置的网格可通行性（is_walkable = True）
+        2. 这样敌人就可以重新寻路通过该位置
+        
+        参数：
+            entity: 死亡的实体
+        """
+        if not entity.has_component(TowerComponent):
+            return
+        
+        if not entity.has_component(TransformComponent):
+            return
+        
+        tower_comp = entity.get_component(TowerComponent)
+        transform = entity.get_component(TransformComponent)
+        
+        if tower_comp is None or transform is None:
+            return
+        
+        grid_map = self._get_grid_map()
+        if grid_map is None:
+            return
+        
+        grid_x = int(round(transform.x))
+        grid_y = int(round(transform.y))
+        
+        grid_map.set_walkable(grid_x, grid_y, True)

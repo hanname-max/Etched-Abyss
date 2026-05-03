@@ -37,17 +37,23 @@ BuildManager 应该通过 ServiceLocator 获取，而不是直接实例化。
 ============================================================================
 """
 
-from typing import Optional
+from typing import Optional, List, Tuple
 from threading import Lock
 
 from CoreLogic.Interfaces.IDataLoader import IDataLoader
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
 from CoreLogic.Managers.EntityManager import EntityManager
+from CoreLogic.Managers.VisibilityManager import VisibilityManager
+from CoreLogic.Managers.EconomyManager import EconomyManager
 from CoreLogic.SpaceMapping.GridMap import GridMap
 from CoreLogic.DTOs.TowerConfigDTO import TowerConfigDTO
 from CoreLogic.Components.TransformComponent import TransformComponent
 from CoreLogic.Components.TowerComponent import TowerComponent
+from CoreLogic.Components.HealthComponent import HealthComponent
+from CoreLogic.Components.LightSourceComponent import LightSourceComponent
 from CoreLogic.Core.ServiceLocator import get_service, try_get_service
+from CoreLogic.Core.EventBus import publish
+from CoreLogic.Events.TowerBuiltEvent import TowerBuiltEvent
 from CoreLogic.Interfaces.IEntity import IEntity
 
 
@@ -85,6 +91,8 @@ class BuildManager:
         self._data_loader: Optional[IDataLoader] = None
         self._entity_manager: Optional[EntityManager] = None
         self._grid_map: Optional[GridMap] = None
+        self._visibility_manager: Optional[VisibilityManager] = None
+        self._economy_manager: Optional[EconomyManager] = None
         self._logger: Optional[IGameLogger] = None
 
     def _get_data_loader(self) -> IDataLoader:
@@ -131,6 +139,17 @@ class BuildManager:
             self._grid_map = get_service(GridMap)
         return self._grid_map
 
+    def _get_visibility_manager(self) -> Optional[VisibilityManager]:
+        """
+        获取可见性管理器服务。
+
+        返回：
+            VisibilityManager 实例，如果未注册则返回 None
+        """
+        if self._visibility_manager is None:
+            self._visibility_manager = try_get_service(VisibilityManager)
+        return self._visibility_manager
+
     def _get_logger(self) -> Optional[IGameLogger]:
         """
         获取日志服务。
@@ -141,6 +160,17 @@ class BuildManager:
         if self._logger is None:
             self._logger = try_get_service(IGameLogger)
         return self._logger
+
+    def _get_economy_manager(self) -> Optional[EconomyManager]:
+        """
+        获取经济管理器服务。
+
+        返回：
+            EconomyManager 实例，如果未注册则返回 None
+        """
+        if self._economy_manager is None:
+            self._economy_manager = try_get_service(EconomyManager)
+        return self._economy_manager
 
     def build_tower(self, tower_config_id: str, grid_x: int, grid_y: int) -> Optional[IEntity]:
         """
@@ -230,6 +260,39 @@ class BuildManager:
                         )
                     return None
 
+                economy_manager = self._get_economy_manager()
+                if economy_manager is not None:
+                    if not economy_manager.can_afford(tower_config.cost):
+                        if logger is not None:
+                            logger.warn(
+                                "建造失败：灵魂碎片不足",
+                                tower_config_id=tower_config_id,
+                                tower_name=tower_config.name,
+                                cost=tower_config.cost,
+                                current_souls=economy_manager.souls
+                            )
+                        return None
+                    
+                    if not economy_manager.try_spend_souls(
+                        tower_config.cost,
+                        reason=f"建造{tower_config.name}"
+                    ):
+                        if logger is not None:
+                            logger.error(
+                                "建造失败：消费灵魂碎片失败",
+                                tower_config_id=tower_config_id,
+                                tower_name=tower_config.name,
+                                cost=tower_config.cost
+                            )
+                        return None
+                else:
+                    if logger is not None:
+                        logger.warn(
+                            "经济管理器未注册，跳过经济鉴权",
+                            tower_config_id=tower_config_id,
+                            cost=tower_config.cost
+                        )
+
                 set_success = grid_map.set_walkable(grid_x, grid_y, False)
                 if not set_success:
                     if logger is not None:
@@ -259,6 +322,27 @@ class BuildManager:
                 tower_component = self._create_tower_component(tower_config)
                 tower_entity.add_component(tower_component)
 
+                health = HealthComponent(
+                    current_health=tower_config.max_health,
+                    max_health=tower_config.max_health
+                )
+                tower_entity.add_component(health)
+
+                light_radius = tower_config.light_radius if tower_config.light_radius > 0 else 0
+                light_source = LightSourceComponent(light_radius=light_radius)
+                tower_entity.add_component(light_source)
+
+                visibility_manager = self._get_visibility_manager()
+                if visibility_manager is not None and light_radius > 0:
+                    visibility_manager.add_light_source_by_id(
+                        tower_entity.entity_id, grid_x, grid_y, light_radius
+                    )
+                    
+                    if logger is not None:
+                        self._log_visibility_status(
+                            logger, visibility_manager, grid_x, grid_y, light_radius
+                        )
+
                 if logger is not None:
                     logger.combat(
                         "防御塔建造成功",
@@ -270,8 +354,17 @@ class BuildManager:
                         damage=tower_config.damage,
                         attack_range=tower_config.attack_range,
                         attack_speed=tower_config.attack_speed,
-                        cost=tower_config.cost
+                        max_health=tower_config.max_health,
+                        cost=tower_config.cost,
+                        light_radius=light_radius
                     )
+
+                publish(TowerBuiltEvent(
+                    tower_entity_id=tower_entity.entity_id,
+                    grid_x=grid_x,
+                    grid_y=grid_y,
+                    tower_config_id=tower_config_id
+                ))
 
                 return tower_entity
                 
@@ -309,6 +402,51 @@ class BuildManager:
             attack_speed=config.attack_speed,
             description=config.description,
             upgrade_ids=config.upgrade_ids.copy() if config.upgrade_ids else []
+        )
+
+    def _log_visibility_status(
+        self,
+        logger: IGameLogger,
+        visibility_manager: VisibilityManager,
+        center_x: int,
+        center_y: int,
+        radius: int
+    ) -> None:
+        """
+        记录视野状态日志。
+        
+        打印被点亮影响的中心网格及边缘网格的视野状态。
+        
+        参数：
+            logger: 日志器实例
+            visibility_manager: 可见性管理器实例
+            center_x: 光源中心 X 坐标
+            center_y: 光源中心 Y 坐标
+            radius: 光源半径
+        """
+        center_visible = visibility_manager.check_visibility(center_x, center_y)
+        
+        edge_cells: List[Tuple[int, int, bool]] = []
+        
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                if abs(dx) + abs(dy) == radius:
+                    x = center_x + dx
+                    y = center_y + dy
+                    is_visible = visibility_manager.check_visibility(x, y)
+                    edge_cells.append((x, y, is_visible))
+        
+        edge_status_list = [
+            f"({x},{y}):{'可见' if v else '隐藏'}"
+            for x, y, v in edge_cells
+        ]
+        edge_status_str = ", ".join(edge_status_list) if edge_status_list else "无边缘格子"
+        
+        logger.info(
+            "防御塔光源视野状态",
+            center=f"({center_x},{center_y}):{'可见' if center_visible else '隐藏'}",
+            radius=radius,
+            edge_cells=edge_status_str
         )
 
     def can_build(self, grid_x: int, grid_y: int) -> bool:

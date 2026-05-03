@@ -33,6 +33,7 @@ class TowerConfigDTO(BaseConfigDTO):
         damage: 基础伤害值
         attack_range: 攻击范围（单位格数）
         attack_speed: 攻击速度（次/秒）
+        max_health: 最大生命值（用于攻城模式下敌人攻击防御塔）
         description: 防御塔的描述文本
         upgrade_ids: 可升级到的后续防御塔 ID 列表
         
@@ -44,6 +45,7 @@ class TowerConfigDTO(BaseConfigDTO):
             damage=20,
             attack_range=3,
             attack_speed=1.0,
+            max_health=100,
             description="基础远程防御塔，攻击速度适中",
             upgrade_ids=["tower_arrow_002", "tower_cannon_001"]
         )
@@ -52,6 +54,8 @@ class TowerConfigDTO(BaseConfigDTO):
     damage: int
     attack_range: float
     attack_speed: float
+    max_health: float = 100.0
+    light_radius: int = 0
     description: str = ""
     upgrade_ids: List[str] = field(default_factory=list)
 

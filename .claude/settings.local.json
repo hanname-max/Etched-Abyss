@@ -13,7 +13,22 @@
       "Bash(python -m pytest tests/test_death_system.py -v)",
       "Bash(python -m pytest tests/test_movement_component.py -v)",
       "Bash(python -m pytest tests/test_pathfinder.py -v)",
-      "Bash(python -m pytest tests/test_wave_manager.py -v)"
+      "Bash(python -m pytest tests/test_wave_manager.py -v)",
+      "Bash(python -m pytest tests/test_build_manager.py -v)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python -m pytest tests/test_targeting_component.py -v)",
+      "Bash(python -c \"from CoreLogic.Events.ProjectileHitEvent import ProjectileHitEvent; print\\('OK'\\)\")",
+      "Bash(python -c \"from CoreLogic import TargetingComponent; print\\('OK'\\)\")",
+      "Bash(python -m pytest tests/test_projectile_system.py -v)",
+      "Bash(python -m pytest tests/test_damage_resolution_system.py -v)",
+      "Bash(python -m pytest tests/test_organ_slot_component.py -v)",
+      "Bash(python -c \"from CoreLogic.Components.TowerComponent import TowerComponent; print\\('OK'\\)\")",
+      "Bash(python -m pytest tests/test_stat_modifier_engine.py -v)",
+      "Bash(python -m pytest tests/test_attack_strategy.py -v)",
+      "Bash(python -m pytest tests/test_visibility_manager.py -v)",
+      "Bash(python -m pytest tests/test_dynamic_repathng_system.py -v)",
+      "Bash(python -m pytest test_meta_systems.py -v)",
+      "Bash(python -m pytest tests/test_siege_system.py -v)"
     ]
   }
 }

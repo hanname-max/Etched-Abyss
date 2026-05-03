@@ -26,9 +26,13 @@
 from CoreLogic.Events.EntityDeathEvent import EntityDeathEvent
 from CoreLogic.Events.TowerFiredEvent import TowerFiredEvent
 from CoreLogic.Events.ProjectileHitEvent import ProjectileHitEvent
+from CoreLogic.Events.TowerBuiltEvent import TowerBuiltEvent
+from CoreLogic.Events.OnHighInsanityEvent import OnHighInsanityEvent
 
 __all__ = [
     'EntityDeathEvent',
     'TowerFiredEvent',
     'ProjectileHitEvent',
+    'TowerBuiltEvent',
+    'OnHighInsanityEvent',
 ]

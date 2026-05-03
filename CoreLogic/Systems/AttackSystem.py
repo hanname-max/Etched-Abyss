@@ -35,6 +35,7 @@ from CoreLogic.Interfaces.ITickable import ITickable
 from CoreLogic.Components.TowerComponent import TowerComponent
 from CoreLogic.Components.TargetingComponent import TargetingComponent
 from CoreLogic.Components.AttackComponent import AttackComponent
+from CoreLogic.Managers.InsanityManager import InsanityManager
 from CoreLogic.Core.ServiceLocator import try_get_service
 from CoreLogic.Managers.EntityManager import EntityManager
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
@@ -129,6 +130,34 @@ class AttackSystem(ITickable):
         """
         return try_get_service(IGameLogger)
     
+    def _get_insanity_manager(self) -> Optional[InsanityManager]:
+        """
+        从 ServiceLocator 获取疯狂值管理器。
+        
+        返回：
+            如果已注册，返回 InsanityManager 实例；否则返回 None
+        """
+        return try_get_service(InsanityManager)
+    
+    def _get_effective_damage(self, base_damage: float) -> float:
+        """
+        获取当前有效的伤害值。
+        
+        在高疯狂状态下，攻击力获得 1.5 倍伤害乘区（高风险高回报机制）。
+        
+        参数：
+            base_damage: 基础伤害值
+            
+        返回：
+            应用乘区后的有效伤害值
+        """
+        insanity_manager = self._get_insanity_manager()
+        if insanity_manager is not None and insanity_manager.is_high_insanity():
+            multiplier = insanity_manager.high_insanity_damage_multiplier
+            return base_damage * multiplier
+        
+        return base_damage
+    
     def _log_attack(self, message: str, **kwargs) -> None:
         """
         记录攻击相关日志。
@@ -194,7 +223,11 @@ class AttackSystem(ITickable):
             if target_id is None:
                 continue
             
-            damage = tower_comp.damage
+            base_damage = tower_comp.damage
+            damage = self._get_effective_damage(base_damage)
+            
+            insanity_manager = self._get_insanity_manager()
+            is_high_insanity = insanity_manager is not None and insanity_manager.is_high_insanity()
             
             projectile_count = attack_comp.execute_attack(
                 tower_entity=entity,
@@ -206,12 +239,21 @@ class AttackSystem(ITickable):
             cooldown_duration = tower_comp.attack_cooldown
             attack_comp.start_cooldown(cooldown_duration)
             
+            log_kwargs = {
+                "tower_id": entity.entity_id,
+                "target_id": target_id,
+                "damage": damage,
+                "base_damage": base_damage,
+                "projectile_count": projectile_count,
+                "strategy_id": attack_comp.strategy_id,
+                "next_cooldown": cooldown_duration,
+                "high_insanity": is_high_insanity
+            }
+            
+            if is_high_insanity and insanity_manager is not None:
+                log_kwargs["damage_multiplier"] = insanity_manager.high_insanity_damage_multiplier
+            
             self._log_attack(
                 "防御塔已攻击",
-                tower_id=entity.entity_id,
-                target_id=target_id,
-                damage=damage,
-                projectile_count=projectile_count,
-                strategy_id=attack_comp.strategy_id,
-                next_cooldown=cooldown_duration
+                **log_kwargs
             )

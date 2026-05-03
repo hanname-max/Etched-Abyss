@@ -26,6 +26,7 @@ from uuid import UUID
 from CoreLogic.DTOs.OrganConfigDTO import OrganConfigDTO
 from CoreLogic.Core.ServiceLocator import try_get_service
 from CoreLogic.Interfaces.IGameLogger import IGameLogger
+from CoreLogic.Managers.InsanityManager import InsanityManager
 from CoreLogic.Utils.StatModifierEngine import (
     ModifierType,
     StatModifier,
@@ -373,12 +374,23 @@ class OrganSlotComponent:
         
         return self.slots[slot_index]
     
+    def _get_insanity_manager(self) -> Optional[InsanityManager]:
+        """
+        获取疯狂值管理器服务。
+        
+        返回：
+            InsanityManager 实例，如果未注册则返回 None
+        """
+        return try_get_service(InsanityManager)
+    
     def equip_organ(self, organ: OrganConfigDTO, slot_index: int) -> bool:
         """
         装备器官到指定插槽。
         
         如果已绑定防御塔组件，会自动解析器官配置中的 attribute_modifiers，
         创建 StatModifier 并应用到对应的属性上。
+        
+        如果器官带有 insanity_gain 属性，会自动增加全局疯狂值。
         
         执行以下合法性校验：
         1. 插槽索引必须在有效范围内
@@ -419,11 +431,20 @@ class OrganSlotComponent:
             if modifiers:
                 self._apply_modifiers_to_slot(slot_index, modifiers)
         
+        if organ.insanity_gain != 0:
+            insanity_manager = self._get_insanity_manager()
+            if insanity_manager is not None:
+                insanity_manager.add_insanity(
+                    organ.insanity_gain,
+                    reason=f"装备器官[{organ.name}]"
+                )
+        
         self._log_info(
             "OrganSlotComponent: 器官装备成功",
             organ_id=organ.id,
             organ_name=organ.name,
-            slot_index=slot_index
+            slot_index=slot_index,
+            insanity_gain=organ.insanity_gain
         )
         
         return True
@@ -435,6 +456,8 @@ class OrganSlotComponent:
         如果已绑定防御塔组件，会精确移除该器官添加的所有 StatModifier。
         此方法使用记录的 modifier_id 进行精确移除，确保只移除该器官
         添加的修饰器，不会影响其他来源的修饰器。
+        
+        如果器官带有 insanity_gain 属性，会自动减少全局疯狂值。
         
         执行以下合法性校验：
         1. 插槽索引必须在有效范围内
@@ -472,11 +495,20 @@ class OrganSlotComponent:
                 removed_count=removed_count
             )
         
+        if organ.insanity_gain != 0:
+            insanity_manager = self._get_insanity_manager()
+            if insanity_manager is not None:
+                insanity_manager.remove_insanity(
+                    organ.insanity_gain,
+                    reason=f"卸下器官[{organ.name}]"
+                )
+        
         self._log_info(
             "OrganSlotComponent: 器官卸下成功",
             organ_id=organ.id,
             organ_name=organ.name,
-            slot_index=slot_index
+            slot_index=slot_index,
+            insanity_lost=organ.insanity_gain
         )
         
         return organ
